@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./dashboard.css"; // Use dashboard styles
-import logo from "./assets/logos.png"; // Import logo
 
 const Event = () => {
   const [events, setEvents] = useState([]);
