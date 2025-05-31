@@ -1,0 +1,195 @@
+/* chatlist.css - Completely revised color scheme */
+:root {
+  /* New color palette */
+  --primary-color: #2E3192; /* Deep blue */
+  --secondary-color: #00B4DB; /* Bright blue */
+  --accent-color: #FF5722; /* Vibrant orange */
+  --background-light: #F8F9FA; /* Light background */
+  --background-dark: #212529; /* Dark background */
+  --text-primary: #212529; /* Dark text */
+  --text-secondary: #495057; /* Medium dark text */
+  --text-light: #F8F9FA; /* Light text */
+  --card-bg: #FFFFFF; /* Card background */
+  --hover-color: #E9ECEF; /* Hover state */
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* General shadow */
+  --border-color: #DEE2E6; /* Border color */
+}
+
+.chatlist-container {
+  height: 90vh;
+  width: 90%;
+  max-width: 900px;
+  margin: 20px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--background-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.chatlist-header {
+  padding: 15px 20px;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+}
+
+.chatlist-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-light);
+  padding: 8px 15px;
+  border-radius: 5px;
+  margin-right: 15px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(-2px);
+}
+
+.chatlist-box {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: var(--background-light);
+}
+
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chat-item:hover {
+  border-left: 3px solid var(--accent-color);
+  background-color: var(--hover-color);
+  transform: translateX(2px);
+  box-shadow: var(--shadow);
+}
+
+.chat-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: var(--secondary-color);
+  border: 2px solid var(--border-color);
+}
+
+.chat-details2 {
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px;
+  width: 100%;
+}
+
+.chat-header2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #4e92d1; /* Adjust color as needed */
+  padding: 10px 20px;
+  border-radius: 50px; /* Keeps the oval shape */
+  width: 100%;
+  max-width: 600px;
+  margin: 10px 0 10px 20px; /* Moves it to the left */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smooth animations */
+}
+
+/* Hover effect for animation */
+.chat-header2:hover {
+  transform: translateX(-5px); /* Slight left shift on hover */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Adds a shadow effect */
+}
+
+/* Entrance animation */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.chat-header2 {
+  animation: slideInLeft 0.5s ease-out; /* Applies the entrance animation */
+}
+
+.chat-details2 h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-timestamp {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  background: var(--background-light);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.chat-preview {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  margin-top: 5px;
+}
+
+.no-messages {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 16px;
+  padding: 40px 20px;
+  font-weight: 500;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 20px;
+}
