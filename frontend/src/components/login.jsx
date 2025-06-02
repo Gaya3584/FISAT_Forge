@@ -1,75 +1,86 @@
 import React, { useState } from "react";
 import "./login.css";
 import logo from "/fisat_logo.png";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    admission_no: "",
-  });
+  const [admissionNo, setAdmissionNo] = useState("");
+  const [userDetails, setUserDetails] = useState(null); // Fetched user info
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate(); // ✅ Use for redirection
+  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  const handleAdmissionSubmit = async (e) => {
+    e.preventDefault();
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.admission_no) newErrors.admission_no = "Admission Number is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    if (!admissionNo.trim()) {
+      setErrors({ admissionNo: "Admission number is required" });
+      return;
+    }
 
-// In login.jsx, modify your handleSubmit function:
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (validate()) {
     try {
-      console.log("Sending login request...");
-      const response = await fetch("https://fisat-forge-last.onrender.com/login", {
+      const res = await fetch("https://your-api-url.com/api/auth/check-admission", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ admissionNumber: admissionNo }),
       });
 
-      const data = await response.json();
-      console.log("Login response:", data);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "User not found");
 
-      if (response.ok) {
-        // Store student ID
-        localStorage.setItem("studentId", data.studentId);
-        
-        // Try using window.location instead of navigate
-        window.location.href = "/dashboard";
-      
-      } else {
-        console.error("Login failed:", data.message);
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
+      setUserDetails(data); // Store name + email
+      setStep(2); // Move to password entry step
+      setErrors({});
+    } catch (err) {
+      setErrors({ admissionNo: err.message });
     }
-  }
-};
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (!password) newErrors.password = "Password is required";
+    if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      const res = await fetch("https://your-api-url.com/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          admissionNumber: admissionNo,
+          email: userDetails.email,
+          password: password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Verification failed");
+
+      localStorage.setItem("token", data.token);
+      window.location.href = "/dashboard";
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
+  };
+
   return (
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <img 
-            src={logo} 
-            alt="FISAT Forge Logo" 
-            className="logo-image" 
-            style={{ cursor: "pointer" }} 
-            onClick={() => navigate("/")} 
+          <img
+            src={logo}
+            alt="FISAT Forge Logo"
+            className="logo-image"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/")}
           />
           <div className="login-title">
             <h1>FISAT Forge</h1>
@@ -78,43 +89,65 @@ const handleSubmit = async (e) => {
         </div>
 
         <div className="login-card">
-          <h2>Welcome Back</h2>
-          <p className="login-description">Sign in to your FISAT Forge account</p>
-          
-          <form onSubmit={handleSubmit} className="login-form">
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                className={errors.email ? "error-input" : ""}
-              />
-              {errors.email && <span className="error-message">{errors.email}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="admission_no">Admission Number</label>
-              <input
-                type="text"
-                id="admission_no"
-                name="admission_no"
-                value={formData.admission_no}
-                onChange={handleChange}
-                placeholder="Enter your Admission Number"
-                className={errors.admission_no ? "error-input" : ""}
-              />
-              {errors.admission_no && <span className="error-message">{errors.admission_no}</span>}
-            </div>
-            
-            <button type="submit" className="login-button">
-              Sign In
-            </button>
-          </form>
-        
+          {step === 1 && (
+            <>
+              <h2>Enter Admission Number</h2>
+              <form onSubmit={handleAdmissionSubmit} className="login-form">
+                <div className="form-group">
+                  <label htmlFor="admissionNo">Admission Number</label>
+                  <input
+                    type="text"
+                    id="admissionNo"
+                    name="admissionNo"
+                    value={admissionNo}
+                    onChange={(e) => setAdmissionNo(e.target.value)}
+                    placeholder="Enter your Admission Number"
+                    className={errors.admissionNo ? "error-input" : ""}
+                  />
+                  {errors.admissionNo && <span className="error-message">{errors.admissionNo}</span>}
+                </div>
+                <button type="submit" className="login-button">Fetch Details</button>
+              </form>
+            </>
+          )}
+
+          {step === 2 && userDetails && (
+            <>
+              <h2>Confirm Your Details</h2>
+              <p><strong>Name:</strong> {userDetails.name}</p>
+              <p><strong>Email:</strong> {userDetails.email}</p>
+
+              <form onSubmit={handlePasswordSubmit} className="login-form">
+                <div className="form-group">
+                  <label htmlFor="password">Set Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className={errors.password ? "error-input" : ""}
+                  />
+                  {errors.password && <span className="error-message">{errors.password}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    className={errors.confirmPassword ? "error-input" : ""}
+                  />
+                  {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+                </div>
+
+                <button type="submit" className="login-button">Verify & Login</button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
