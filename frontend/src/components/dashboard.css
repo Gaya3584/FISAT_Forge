@@ -999,7 +999,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-// Add this CSS to your dashboard.css
+
 .notification-dropdown {
   position: absolute;
   right: 0;

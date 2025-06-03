@@ -28,7 +28,7 @@ const HomePage = () => {
     }
     try {
       console.log("Searching for:", searchQuery);
-      const response = await axios.get(`https://fisat-forge-last.onrender.com/search?query=${searchQuery}`);
+      const response = await axios.get(`http://localhost:5000/api/auth/search`);
       console.log("Search results:", response.data);
       setSearchResults(Array.isArray(response.data) ? response.data : []);
       setShowSearchResults(true);
@@ -46,7 +46,7 @@ const HomePage = () => {
   const fetchEvents = async () => {
     try {
       console.log("Fetching events");
-      const response = await axios.get("https://fisat-forge-last.onrender.com/events");
+      const response = await axios.get(`http://localhost:5000/api/auth/events`);
       console.log("Events response:", response.data);
       console.log("Is events array?", Array.isArray(response.data));
       
@@ -79,7 +79,7 @@ const HomePage = () => {
   const fetchUserProfile = async () => {
     try {
       console.log("Fetching user profile for ID:", loggedInUserId);
-      const response = await axios.get(`https://fisat-forge-last.onrender.com/profile/${loggedInUserId}`);
+      const response = await axios.get(`http://localhost:5000/api/auth/profile`);
       console.log("User profile response:", response.data);
       setUserRole(response.data.Role || "");
       setProfileImage(response.data.ProfileImage || "/default-avatar.png");
@@ -95,7 +95,7 @@ const HomePage = () => {
   const fetchLatestPosts = async () => {
     try {
       console.log("Fetching posts for user:", loggedInUserId);
-      const response = await axios.get(`https://fisat-forge-last.onrender.com/posts/following/${loggedInUserId}`);
+      const response = await axios.get(`http://localhost:5000/api/auth/posts`);
       console.log("Posts response:", response.data);
       console.log("Response data type:", typeof response.data);
       console.log("Is posts array?", Array.isArray(response.data));
@@ -128,7 +128,7 @@ const HomePage = () => {
   const fetchJobs = async () => {
     try {
       console.log("Fetching jobs");
-      const response = await axios.get("https://fisat-forge-last.onrender.com/jobs");
+      const response = await axios.get("http://localhost:5000/api/auth/jobs");
       console.log("Jobs response:", response.data);
       console.log("Is jobs array?", Array.isArray(response.data));
       
@@ -156,7 +156,7 @@ const HomePage = () => {
   const fetchNotifications = async () => {
     try {
       console.log("Fetching notifications for user:", loggedInUserId);
-      const response = await axios.get("https://fisat-forge-last.onrender.com/api/notifications", {
+      const response = await axios.get("http://localhost:5000/api/auth/notifications", {
         params: {
           userId: loggedInUserId
         }
@@ -187,7 +187,7 @@ const HomePage = () => {
 
   const markAsRead = async (id) => {
     try {
-      await axios.put(`https://fisat-forge-last.onrender.com/api/notifications/${id}/read`);
+      await axios.put(`http://localhost:5000/api/authnotifications/read`);
       setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -201,7 +201,7 @@ const HomePage = () => {
   const handleAcceptFollowRequest = async (notificationId, senderId) => {
     try {
       console.log("Accepting follow request:", notificationId, "from sender:", senderId);
-      const response = await axios.post("https://fisat-forge-last.onrender.com/accept-follow-request", {
+      const response = await axios.post("http://localhost:5000/api/auth/accept-follow-request", {
         notificationId,
         receiverId: loggedInUserId,
         senderId
@@ -242,7 +242,7 @@ const HomePage = () => {
   const handleRejectFollowRequest = async (notificationId) => {
     try {
       console.log("Rejecting follow request:", notificationId);
-      await axios.post("https://fisat-forge-last.onrender.com/reject-follow-request", {
+      await axios.post("http://localhost:5000/api/auth/reject-follow-request", {
         notificationId,
       });
       // Update the notification locally by marking as read

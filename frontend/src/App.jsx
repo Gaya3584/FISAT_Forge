@@ -15,8 +15,8 @@ import AdminLogin from "./components/Adlogin";
 import AdminDashboard from "./components/AdminDashboard";
 import About from "./components/about";
 import EventListing from "./components/eventlisting";
-import Chat from "./components/chat";
-import ChatList from "./components/chatlist";
+// import Chat from "./components/chat";
+// import ChatList from "./components/chatlist";
 import Event from "./components/eventlanding";
 
 
@@ -31,7 +31,7 @@ function App() {
 
 function MainContent() {
   const location = useLocation();
-  const hideNavRoutes = ["/view-profile", "/jobs", "/community", "/login", "/post-job", "/create-post", "/admin-login","/admin/dashboard","/events","/chat"];
+  const hideNavRoutes = ["/view-profile", "/jobs", "/community", "/login", "/post-job", "/create-post", "/admin-login","/admin/dashboard","/events"];
   const showFooterRoutes = ["/", "/dashboard", "/login", "/admin-login"];
   const shouldHideNav = hideNavRoutes.some((path) => location.pathname.startsWith(path));
   const shouldShowFooter = showFooterRoutes.includes(location.pathname);
@@ -57,8 +57,8 @@ function MainContent() {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/chat/:userId/:recipientId" element={<Chat />} />
-          <Route path="/chatlist" element={<ChatList />} />
+          {/* <Route path="/chat/:userId/:recipientId" element={<Chat />} />
+          <Route path="/chatlist" element={<ChatList />} /> */}
 
           <Route path="*" element={<h1 style={{ textAlign: "center" }}>404 - Page Not Found</h1>} />
         </Routes>

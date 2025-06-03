@@ -3,9 +3,11 @@ import "./login.css";
 import logo from "/fisat_logo.png";
 import { useNavigate } from "react-router-dom";
 
+// ... imports and component declaration unchanged
+
 const LoginPage = () => {
-  const [admissionNo, setAdmissionNo] = useState("");
-  const [userDetails, setUserDetails] = useState(null); // Fetched user info
+  const [admission_no, setadmission_no] = useState("");
+  const [userDetails, setUserDetails] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -15,35 +17,9 @@ const LoginPage = () => {
   const handleAdmissionSubmit = async (e) => {
     e.preventDefault();
 
-    if (!admissionNo.trim()) {
-      setErrors({ admissionNo: "Admission number is required" });
-      return;
-    }
-
-    try {
-      const res = await fetch("https://your-api-url.com/api/auth/check-admission", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ admissionNumber: admissionNo }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "User not found");
-
-      setUserDetails(data); // Store name + email
-      setStep(2); // Move to password entry step
-      setErrors({});
-    } catch (err) {
-      setErrors({ admissionNo: err.message });
-    }
-  };
-
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
     const newErrors = {};
-
-    if (!password) newErrors.password = "Password is required";
-    if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    if (!admission_no.trim()) newErrors.admission_no = "Admission number is required";
+    if (!password.trim()) newErrors.password = "Password is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -51,21 +27,64 @@ const LoginPage = () => {
     }
 
     try {
-      const res = await fetch("https://your-api-url.com/api/auth/verify-email", {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admission_no, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Login failed");
+
+      localStorage.setItem("token", data.token);
+      window.location.href = "/dash";
+    } catch (err) {
+      setErrors({ password: err.message });
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!admission_no.trim()) {
+      setErrors({ admission_no: "Please enter your admission number first" });
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/check-admission", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admission_no }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "User not found");
+
+      setUserDetails(data);
+      setStep(2);
+      setErrors({});
+      await handleVerifyEmail(data);  // ✅ Call email verification here
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
+  };
+
+  const handleVerifyEmail = async (user) => {
+    if (!user) return;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          admissionNumber: admissionNo,
-          email: userDetails.email,
-          password: password,
+          admission_no: user.admission_no,
+          email: user.email,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Verification failed");
+      if (!res.ok) throw new Error(data.message || "Failed to send verification email");
 
-      localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
+      alert("Verification email sent successfully!");
     } catch (err) {
       alert(err.message || "Something went wrong");
     }
@@ -91,22 +110,47 @@ const LoginPage = () => {
         <div className="login-card">
           {step === 1 && (
             <>
-              <h2>Enter Admission Number</h2>
+              <h2>Login</h2>
               <form onSubmit={handleAdmissionSubmit} className="login-form">
                 <div className="form-group">
-                  <label htmlFor="admissionNo">Admission Number</label>
+                  <label htmlFor="admission_no">Admission Number</label>
                   <input
                     type="text"
-                    id="admissionNo"
-                    name="admissionNo"
-                    value={admissionNo}
-                    onChange={(e) => setAdmissionNo(e.target.value)}
+                    id="admission_no"
+                    name="admission_no"
+                    value={admission_no}
+                    onChange={(e) => setadmission_no(e.target.value)}
                     placeholder="Enter your Admission Number"
-                    className={errors.admissionNo ? "error-input" : ""}
+                    className={errors.admission_no ? "error-input" : ""}
                   />
-                  {errors.admissionNo && <span className="error-message">{errors.admissionNo}</span>}
+                  {errors.admission_no && (
+                    <span className="error-message">{errors.admission_no}</span>
+                  )}
+
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className={errors.password ? "error-input" : ""}
+                  />
+                  {errors.password && (
+                    <span className="error-message">{errors.password}</span>
+                  )}
+
+                  <button
+                    type="button"
+                    className="forgot-password-link"
+                    onClick={handleForgotPassword}
+                  >
+                    New user / Forgot Password?
+                  </button>
                 </div>
-                <button type="submit" className="login-button">Fetch Details</button>
+                <button type="submit" className="login-button">
+                  Login
+                </button>
               </form>
             </>
           )}
@@ -116,36 +160,9 @@ const LoginPage = () => {
               <h2>Confirm Your Details</h2>
               <p><strong>Name:</strong> {userDetails.name}</p>
               <p><strong>Email:</strong> {userDetails.email}</p>
-
-              <form onSubmit={handlePasswordSubmit} className="login-form">
-                <div className="form-group">
-                  <label htmlFor="password">Set Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className={errors.password ? "error-input" : ""}
-                  />
-                  {errors.password && <span className="error-message">{errors.password}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter your password"
-                    className={errors.confirmPassword ? "error-input" : ""}
-                  />
-                  {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-                </div>
-
-                <button type="submit" className="login-button">Verify & Login</button>
-              </form>
+              <p><strong>Admission Number:</strong> {userDetails.admission_no}</p>
+              <p><strong>Department:</strong> {userDetails.department}</p>
+              <p className="info-text">A verification email has been sent. Please check your inbox to set your password.</p>
             </>
           )}
         </div>

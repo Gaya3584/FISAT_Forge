@@ -37,7 +37,7 @@ const ProfilePage = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://fisat-forge-last.onrender.com/profile/${id}`);
+      const response = await fetch(`http://localhost:5000/api/auth/profile`);
       if (!response.ok) {
         throw new Error("Failed to fetch profile");
       }
@@ -72,7 +72,7 @@ const ProfilePage = () => {
       formData.append("image", file);
   
       try {
-        const response = await fetch(`https://fisat-forge-last.onrender.com/upload/${id}`, {
+        const response = await fetch(`http://localhost:5000/api/auth/upload`, {
           method: "POST",
           body: formData,
         });
@@ -132,7 +132,7 @@ const ProfilePage = () => {
       setSaveStatus("saving");
       console.log("Sending update data:", editedData);
       
-      const response = await fetch(`https://fisat-forge-last.onrender.com/profile/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/auth/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editedData),

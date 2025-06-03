@@ -13,7 +13,7 @@ const ChatList = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await axios.get(`https://fisat-forge-last.onrender.com/chats/${userId}`);
+        const response = await axios.get(`http://localhost:5000/api/auth/chats`);
         setChats(response.data);
       } catch (error) {
         console.error("Error fetching chat list:", error);

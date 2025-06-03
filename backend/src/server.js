@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const app = require("./app"); // Import your main app configuration
 
 app.get("/", (req, res) => {

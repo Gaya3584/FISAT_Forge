@@ -19,7 +19,7 @@ const ViewProfile = () => {
 
   useEffect(() => {
     axios
-      .get(`https://fisat-forge-last.onrender.com/profile/${id}`)
+      .get(`http://localhost:5000/api/auth/profile`)
       .then((res) => {
         setProfileData(res.data);
         setProfileImage(res.data.ProfileImage || "/default-avatar.png");
@@ -34,7 +34,7 @@ const ViewProfile = () => {
 
   const checkFollowRequestStatus = async () => {
     try {
-      const response = await axios.get(`https://fisat-forge-last.onrender.com/check-follow-request`, {
+      const response = await axios.get(`http://localhost:5000/api/auth/check-follow-request`, {
         params: {
           senderId: loggedInUserId,
           receiverId: id
@@ -50,14 +50,14 @@ const ViewProfile = () => {
     try {
       if (isFollowing) {
         // Unfollow logic
-        await axios.post(`https://fisat-forge-last.onrender.com/unfollow`, {
+        await axios.post(`http://localhost:5000/api/auth/unfollow`, {
           userId: loggedInUserId,
           targetId: id,
         });
         setIsFollowing(false);
       } else if (!requestPending) {
         // Send follow request
-        await axios.post(`https://fisat-forge-last.onrender.com/follow-request`, {
+        await axios.post(`http://localhost:5000/api/auth/follow-request`, {
           senderId: loggedInUserId,
           receiverId: id,
         });
@@ -73,7 +73,7 @@ const ViewProfile = () => {
     if (!message) return;
 
     try {
-      const response = await axios.post("https://fisat-forge-last.onrender.com/send-message", {
+      const response = await axios.post("http://localhost:5000/api/auth/send-message", {
         senderId: loggedInUserId,
         recipientId: id,
         message,

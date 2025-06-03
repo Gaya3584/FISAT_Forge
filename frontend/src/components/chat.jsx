@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client"; // Socket.IO import commented
 import "./chat.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
-const socket = io("https://fisat-forge-last.onrender.com:5000");
+// const socket = io("http://localhost:5000"); // Commented out
 
 const Chat = () => {
   const { userId, recipientId } = useParams();
@@ -15,7 +15,7 @@ const Chat = () => {
   const [recipientDetails, setRecipientDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isTyping, setIsTyping] = useState(false); // Typing indicator state
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ const Chat = () => {
   useEffect(() => {
     const fetchRecipientDetails = async () => {
       try {
-        const response = await axios.get(`https://fisat-forge-last.onrender.com/profile/${recipientId}`);
+        const response = await axios.get(`http://localhost:5000/api/auth/profile`);
         setRecipientDetails(response.data);
       } catch (err) {
         console.error("Error fetching recipient details:", err);
@@ -41,7 +41,7 @@ const Chat = () => {
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`https://fisat-forge-last.onrender.com/messages/${userId}/${recipientId}`);
+        const response = await axios.get(`http://localhost:5000/api/auth/messages`);
         setMessages(response.data);
         setIsLoading(false);
       } catch (err) {
@@ -53,30 +53,30 @@ const Chat = () => {
 
     fetchMessages();
 
-    const chatRoom = [userId, recipientId].sort().join("-");
-    socket.emit("joinRoom", chatRoom);
+    // const chatRoom = [userId, recipientId].sort().join("-");
+    // socket.emit("joinRoom", chatRoom);
 
-    socket.on("receiveMessage", (message) => {
-      if (
-        (message.senderId === userId && message.recipientId === recipientId) ||
-        (message.senderId === recipientId && message.recipientId === userId)
-      ) {
-        setMessages((prev) => [...prev, message]);
-      }
-    });
+    // socket.on("receiveMessage", (message) => {
+    //   if (
+    //     (message.senderId === userId && message.recipientId === recipientId) ||
+    //     (message.senderId === recipientId && message.recipientId === userId)
+    //   ) {
+    //     setMessages((prev) => [...prev, message]);
+    //   }
+    // });
 
-    socket.on("typing", ({ senderId }) => {
-      if (senderId === recipientId) setIsTyping(true);
-    });
+    // socket.on("typing", ({ senderId }) => {
+    //   if (senderId === recipientId) setIsTyping(true);
+    // });
 
-    socket.on("stopTyping", ({ senderId }) => {
-      if (senderId === recipientId) setIsTyping(false);
-    });
+    // socket.on("stopTyping", ({ senderId }) => {
+    //   if (senderId === recipientId) setIsTyping(false);
+    // });
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
-      socket.off("stopTyping");
+      // socket.off("receiveMessage");
+      // socket.off("typing");
+      // socket.off("stopTyping");
     };
   }, [userId, recipientId]);
 
@@ -86,60 +86,55 @@ const Chat = () => {
 
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
-    socket.emit("typing", { senderId: userId, recipientId });
-    clearTimeout(window.typingTimeout);
-    window.typingTimeout = setTimeout(() => {
-      socket.emit("stopTyping", { senderId: userId, recipientId });
-    }, 1000);
+    // socket.emit("typing", { senderId: userId, recipientId });
+    // clearTimeout(window.typingTimeout);
+    // window.typingTimeout = setTimeout(() => {
+    //   socket.emit("stopTyping", { senderId: userId, recipientId });
+    // }, 1000);
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
-  
+
     try {
-      // Create message object with local timestamp
       const messageObj = {
         senderId: userId,
         recipientId,
         message: newMessage,
         createdAt: new Date()
       };
-      
-      // Update local state immediately (add this line)
+
       setMessages(prevMessages => [...prevMessages, messageObj]);
-      
-      // Then emit to socket
-      socket.emit("sendMessage", {
-        senderId: userId,
-        recipientId,
-        message: newMessage,
-      });
-      
+
+      // socket.emit("sendMessage", {
+      //   senderId: userId,
+      //   recipientId,
+      //   message: newMessage,
+      // });
+
       setNewMessage("");
-      socket.emit("stopTyping", { senderId: userId, recipientId });
+      // socket.emit("stopTyping", { senderId: userId, recipientId });
     } catch (error) {
       console.error("Failed to send message:", error);
       alert("Failed to send message");
     }
   };
-  // Add to useEffect in Chat.jsx where other socket listeners are defined
-socket.on("messageReadUpdate", ({ messageId }) => {
-  setMessages(prevMessages => 
-    prevMessages.map(msg => 
-      msg._id === messageId ? { ...msg, isRead: true } : msg
-    )
-  );
-});
 
-// Add this useEffect to mark messages as read when they appear in view
-useEffect(() => {
-  // Mark received messages as read
-  messages.forEach(msg => {
-    if (msg.senderId === recipientId && !msg.isRead) {
-      socket.emit("messageRead", { messageId: msg._id, readerId: userId });
-    }
-  });
-}, [messages, recipientId, userId]);
+  // socket.on("messageReadUpdate", ({ messageId }) => {
+  //   setMessages(prevMessages => 
+  //     prevMessages.map(msg => 
+  //       msg._id === messageId ? { ...msg, isRead: true } : msg
+  //     )
+  //   );
+  // });
+
+  useEffect(() => {
+    messages.forEach(msg => {
+      if (msg.senderId === recipientId && !msg.isRead) {
+        // socket.emit("messageRead", { messageId: msg._id, readerId: userId });
+      }
+    });
+  }, [messages, recipientId, userId]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -152,10 +147,9 @@ useEffect(() => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        
-<button className="back-button" onClick={() => navigate("/chatlist")}>
-  <FontAwesomeIcon icon={faArrowLeft} />
-</button>
+        <button className="back-button" onClick={() => navigate("/chatlist")}>
+          <FontAwesomeIcon icon={faArrowLeft} />
+        </button>
         <div className="recipient-info">
           <h2>{recipientDetails?.Name || "Chat"}</h2>
           <p>{recipientDetails?.Email || ""}</p>

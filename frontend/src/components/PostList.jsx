@@ -24,10 +24,10 @@ function PostList() {
       let response;
       if (viewMode === 'following') {
         // Get posts only from users the current user follows
-        response = await axios.get(`https://fisat-forge-last.onrender.com/posts/following/${currentUserId}`);
+        response = await axios.get(`http://localhost:5000/api/auth/posts/following`);
       } else {
         // Get all posts (original behavior)
-        response = await axios.get('https://fisat-forge-last.onrender.com/posts');
+        response = await axios.get('http://localhost:5000/api/auth/posts');
       }
       setPosts(response.data);
     } catch (error) {
@@ -43,7 +43,7 @@ function PostList() {
   
   const handleLike = async (postId) => {
     try {
-      await axios.post(`https://fisat-forge-last.onrender.com/posts/${postId}/like`, {
+      await axios.post(`http://localhost:5000/api/auth/posts/like`, {
         userId: currentUserId
       });
       fetchPosts();
@@ -54,7 +54,7 @@ function PostList() {
 
   const handleComment = async (postId) => {
     try {
-      await axios.post(`https://fisat-forge-last.onrender.com/posts/${postId}/comment`, {
+      await axios.post(`http://localhost:5000/api/auth/posts/comment`, {
         userId: currentUserId,
         content: newComment
       });
