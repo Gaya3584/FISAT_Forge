@@ -1,13 +1,16 @@
 const mongoose = require("mongoose");
-const UserSchema = new mongoose.Schema({
-  admission_no: { type: String, unique: true }, 
+
+const userSchema = new mongoose.Schema({
   name: String,
-  email: { type: String, unique: true },
-  role: String,
-  year_of_graduation: { type: Number }, 
-  phone: {type:Number, unique: true},
+  email: String,
+  admission_no: String,
   department: String,
-  isEmailVerified: { type: Boolean, default: false },
+  year_of_graduation: Number,
+  phone: String,
+  role: String,
   password: String,
+  isVerified: { type: Boolean, default: false },
+  verificationToken: String,
 });
-module.exports = mongoose.model("User", UserSchema, "student/alumni");
+
+module.exports = mongoose.model("User", userSchema);

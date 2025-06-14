@@ -1,17 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const {
-  findByAdmissionNumber,
-  verifyEmailToken,
-  sendVerificationEmail,
+  checkAdmission,
+  verifyEmail,
   setPassword,
+  login,
 } = require("../controllers/authController");
 
-// Changed to POST since we're sending data in request body
-router.post("/check-admission", findByAdmissionNumber);
-router.post("/verify-email", sendVerificationEmail);
-router.get("/verify-email", verifyEmailToken);
+// Route to check admission number and return user details
+router.post("/check-admission", checkAdmission);
+
+// Route to send email verification
+router.post("/verify-email", verifyEmail);
+
+// Route to set password after email verification
 router.post("/set-password", setPassword);
 
+// Route to log in
+router.post("/login", login);
 
 module.exports = router;

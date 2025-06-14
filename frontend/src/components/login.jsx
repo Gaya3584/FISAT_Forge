@@ -37,7 +37,7 @@ const LoginPage = () => {
       if (!res.ok) throw new Error(data.message || "Login failed");
 
       localStorage.setItem("token", data.token);
-      window.location.href = "/dash";
+      window.location.href = "/dashboard";
     } catch (err) {
       setErrors({ password: err.message });
     }
@@ -140,31 +140,28 @@ const LoginPage = () => {
                     <span className="error-message">{errors.password}</span>
                   )}
 
-                  <button
-                    type="button"
-                    className="forgot-password-link"
-                    onClick={handleForgotPassword}
-                  >
-                    New user / Forgot Password?
-                  </button>
                 </div>
                 <button type="submit" className="login-button">
                   Login
                 </button>
+                
               </form>
             </>
           )}
 
           {step === 2 && userDetails && (
-            <>
-              <h2>Confirm Your Details</h2>
-              <p><strong>Name:</strong> {userDetails.name}</p>
-              <p><strong>Email:</strong> {userDetails.email}</p>
-              <p><strong>Admission Number:</strong> {userDetails.admission_no}</p>
-              <p><strong>Department:</strong> {userDetails.department}</p>
-              <p className="info-text">A verification email has been sent. Please check your inbox to set your password.</p>
-            </>
-          )}
+  <div className="confirm-details">
+    <h2>Confirm Your Details</h2>
+    <p><strong>Name:</strong> {userDetails.name}</p>
+    <p><strong>Email:</strong> {userDetails.email}</p>
+    <p><strong>Admission Number:</strong> {userDetails.admission_no}</p>
+    <p><strong>Department:</strong> {userDetails.department}</p>
+    <p className="info-text">
+      A verification email has been sent. Please check your inbox to set your password.
+    </p>
+  </div>
+)}
+
         </div>
       </div>
     </div>

@@ -11,73 +11,106 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.findByAdmissionNumber = async (req, res) => {
+// POST /check-admission
+const checkAdmission = async (req, res) => {
   const { admission_no } = req.body;
-  const user = await User.findOne({ admission_no });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  return res.json({
-    name: user.name,
-    email: user.email,
-    admission_no: user.admission_no, // Return as admissionNumber for consistency
-    role: user.role,
-    department: user.department,
-    year_of_graduation: user.year_of_graduation
-  });
-};
 
-exports.sendVerificationEmail = async (req, res) => {
-  const { admission_no, email } = req.body;
-  const user = await User.findOne({ admission_no, email });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  if (user.isEmailVerified) {
-    return res.status(400).json({ message: "Email already verified" });
+  try {
+    const user = await User.findOne({ admission_no });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.password) {
+      return res.status(400).json({ message: "User already registered" });
+    }
+
+    res.json({
+      name: user.name,
+      email: user.email,
+      admission_no: user.admission_no,
+      department: user.department,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-  const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Email Verification",
-    html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
-  });
-  return res.json({ message: "Verification email sent" });
 };
 
+// POST /verify-email
+const verifyEmail = async (req, res) => {
+  const { admission_no, email } = req.body;
 
+  try {
+    const user = await User.findOne({ admission_no, email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-exports.verifyEmailToken = async (req, res) => {
-  const { token } = req.query;
+    const token = jwt.sign({ admission_no }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    user.verificationToken = token;
+    await user.save();
+
+    const link = `http://localhost:5173/set-password?token=${token}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Set Your Password - FISAT Forge",
+      html: `<p>Hello ${user.name},</p><p>Click <a href="${link}">here</a> to set your password and complete your registration.</p>`,
+    });
+
+    res.json({ message: "Verification email sent" });
+  } catch (err) {
+    res.status(500).json({ message: "Email sending failed" });
+  }
+};
+
+// POST /set-password
+const setPassword = async (req, res) => {
+  const { token, password } = req.body;
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).send("User not found");
-    if (user.isEmailVerified) {
-      return res.redirect(`http://localhost:5173/set-password?token=${token}&status=alreadyVerified`);
+    const user = await User.findOne({ admission_no: decoded.admission_no });
+
+    if (!user || user.verificationToken !== token) {
+      return res.status(400).json({ message: "Invalid or expired token" });
     }
-    user.isEmailVerified = true;
+
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    user.isVerified = true;
+    user.verificationToken = null;
     await user.save();
-    return res.redirect(`http://localhost:5173/set-password?token=${token}`);
+
+    res.json({ message: "Password set successfully" });
   } catch (err) {
-    return res.redirect(`http://localhost:5173/set-password?error=invalid`);
+    res.status(400).json({ message: "Token expired or invalid" });
   }
 };
 
-exports.setPassword = async (req, res) => {
-  const { admission_no, email, password } = req.body;
-  if (!admission_no || !email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-  const user = await User.findOne({ admission_no, email });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  if (user.isEmailVerified) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
-    await user.save();
-    return res.json({ message: "Password set successfully" });
-    redirect(`http://localhost:5173/login?status=passwordSet`);
-  } else {
-    return res.status(403).json({ message: "Email not verified" });
-  }
-}
+// POST /login
+const login = async (req, res) => {
+  const { admission_no, password } = req.body;
 
+  try {
+    const user = await User.findOne({ admission_no });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    if (!user.password || !user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email and set password first" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign({ user_id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ message: "Login failed" });
+  }
+};
+
+module.exports = {
+  checkAdmission,
+  verifyEmail,
+  setPassword,
+  login,
+};
